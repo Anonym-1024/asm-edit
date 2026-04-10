@@ -6,12 +6,10 @@ package asmedit;
 
 import asmedit.machine.Machine;
 import asmedit.machine.Register;
-import asmedit.ui.MainMenuWindow;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import javax.swing.SwingUtilities;
-import javax.swing.UIManager;
+import java.util.Scanner;
 
 /**
  *
@@ -37,14 +35,23 @@ public class AsmEdit {
         m.reset();
         m.loadMemory(fileContent);
         
-        for (Register r: m.getRegisters()) {
-            System.out.println(r.getContent());
+        Scanner s = new Scanner(System.in);
+        
+        while (true) {
+            m.next();
+            int n = 0;
+            for (Register r: m.getRegisters()) {
+                System.out.println("r" + n + ": " + r.getContent());
+                n+=1;
+            }
+            System.out.print("Z: " + m.getPsr().getZ());
+            System.out.print("     N: " + m.getPsr().getN());
+            System.out.print("     C: " + m.getPsr().getC());
+            System.out.println("     V: " + m.getPsr().getV());
+            s.nextLine();
+            
         }
         
-        
-        for (Register r: m.getRegisters()) {
-            System.out.println(r.getContent());
-        }
     }
     
 }
