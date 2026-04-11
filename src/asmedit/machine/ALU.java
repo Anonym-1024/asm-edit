@@ -78,7 +78,7 @@ public class ALU {
         if ((res & 0x100) == 0x100) {
             flags |= 0b0010;
         }
-        if ((a & 0x80) == (b & 0x80) && (res & 0x80) != (a & 0x80)) {
+        if ((a & 0x80) != (b & 0x80) && (res & 0x80) != (a & 0x80)) {
             flags |= 0b0001;
         }
         
@@ -105,7 +105,7 @@ public class ALU {
         if ((res & 0x100) == 0x100) {
             flags |= 0b0010;
         }
-        if ((a & 0x80) == (b & 0x80) && (res & 0x80) != (a & 0x80)) {
+        if ((a & 0x80) != (b & 0x80) && (res & 0x80) != (a & 0x80)) {
             flags |= 0b0001;
         }
         
@@ -132,9 +132,7 @@ public class ALU {
         if ((res & 0x100) == 0x100) {
             flags |= 0b0010;
         }
-        if ((a & 0x80) == (b & 0x80) && (res & 0x80) != (a & 0x80)) {
-            flags |= 0b0001;
-        }
+        
         
         psr.setAluFlags(flags);
         
@@ -159,9 +157,7 @@ public class ALU {
         if ((res & 0x100) == 0x100) {
             flags |= 0b0010;
         }
-        if ((a & 0x80) == (b & 0x80) && (res & 0x80) != (a & 0x80)) {
-            flags |= 0b0001;
-        }
+        
         
         psr.setAluFlags(flags);
         
@@ -186,9 +182,7 @@ public class ALU {
         if ((res & 0x100) == 0x100) {
             flags |= 0b0010;
         }
-        if ((a & 0x80) == (b & 0x80) && (res & 0x80) != (a & 0x80)) {
-            flags |= 0b0001;
-        }
+        
         
         psr.setAluFlags(flags);
         
@@ -204,13 +198,16 @@ public class ALU {
         
         int res =  (a << 1);
         int flags = 0;
+        //Z
         if ((res & 0xFF) == 0) {
             flags |= 0b1000;
         }
+        //N
         if ((res & 0x80) == 0x80) {
             flags |= 0b0100;
         }
-        if ((res & 0x100) == 0x100) {
+        //C
+        if ((a & 0x80) == 0x80) {
             flags |= 0b0010;
         }
         
@@ -228,14 +225,17 @@ public class ALU {
     
     public static int lsrs(int a, ProcessStateRegister psr) {
         int flags = 0;
+        int res =  (a >> 1);
+        
+        //Z
         if ((a & 1) == 1) {
             flags |= 0b0010;
         }
-        int res =  (a >> 1);
-        
+        //N
         if ((res & 0xFF) == 0) {
             flags |= 0b1000;
         }
+        //C
         if ((res & 0x80) == 0x80) {
             flags |= 0b0100;
         }
@@ -257,16 +257,20 @@ public class ALU {
     
     public static int asrs(int a, ProcessStateRegister psr) {
         int flags = 0;
-        if ((a & 1) == 1) {
-            flags |= 0b0010;
-        }
+        
         int res =  (a >> 1);
         res |= (res & 0x4F) << 1;
+        //Z
         if ((res & 0xFF) == 0) {
             flags |= 0b1000;
         }
+        //N
         if ((res & 0x80) == 0x80) {
             flags |= 0b0100;
+        }
+        //C
+        if ((a & 1) == 1) {
+            flags |= 0b0010;
         }
         
         
@@ -274,6 +278,61 @@ public class ALU {
         psr.setAluFlags(flags);
         
         return res & 0xFF;
+    }
+    
+    
+    public static int csl(int a, ProcessStateRegister psr) {
+        
+        return ((a << 1) | psr.getC()) & 0xFF ;
+    }
+    
+    public static int csr(int a, ProcessStateRegister psr) {
+        
+        return ((a >> 1) | (psr.getC() << 8)) & 0xFF ;
+    }
+    
+    
+    public static int csls(int a, ProcessStateRegister psr) {
+        
+        int res = ((a << 1) | psr.getC()) & 0xFF ;
+        int flags = 0;
+        //Z
+        if ((res & 0xFF) == 0) {
+            flags |= 0b1000;
+        }
+        //N
+        if ((res & 0x80) == 0x80) {
+            flags |= 0b0100;
+        }
+        //C
+        if ((a & 0x80) == 0x80) {
+            flags |= 0b0010;
+        }
+        
+        psr.setAluFlags(flags);
+        return res;
+        
+    }
+    
+    public static int csrs(int a, ProcessStateRegister psr) {
+        
+        int res =  ((a >> 1) | (psr.getC() << 8)) & 0xFF ;
+        int flags = 0;
+        //Z
+        if ((res & 0xFF) == 0) {
+            flags |= 0b1000;
+        }
+        //N
+        if ((res & 0x80) == 0x80) {
+            flags |= 0b0100;
+        }
+        //C
+        if ((a & 1) == 1) {
+            flags |= 0b0010;
+        }
+        
+        psr.setAluFlags(flags);
+        return res;
     }
     
 }

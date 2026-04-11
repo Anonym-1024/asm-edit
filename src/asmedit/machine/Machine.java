@@ -8,16 +8,24 @@ package asmedit.machine;
  *
  * @author koukola
  */
+
 public class Machine {
     protected Register[] registers;
     protected ProgramCounter pc;
     protected InterruptRegister intr;
     protected ProcessStateRegister psr;
     protected Memory memory;
-
-    public Register[] getRegisters() {
-        return registers;
+    
+    
+    protected enum State {
+        IDLE,
+        STOPPED,
+        RUNNING,
     }
+    
+    protected State state;
+
+    
     
     
     public Machine() {
@@ -29,32 +37,59 @@ public class Machine {
         this.psr = new ProcessStateRegister();
         this.intr = new InterruptRegister();
         this.memory = new Memory();
+        
+        this.state = State.STOPPED;
+    }
+
+    public Register[] getRegisters() {
+        return registers;
+    }
+
+    public ProgramCounter getPc() {
+        return pc;
+    }
+
+    public InterruptRegister getIntr() {
+        return intr;
+    }
+
+    public ProcessStateRegister getPsr() {
+        return psr;
+    }
+
+    public Memory getMemory() {
+        return memory;
     }
     
+    
+    
+    
+    
+    
+    
     public void reset() {
+        
+        if (state != State.STOPPED) {
+            return;
+        }
+        
         for (Register r: registers) {
             r.setContent(0);
         }
-        
         pc.setContent(0);
-        
         psr.setContent(0);
         memory.setContent(new byte[0]);
+        //intr
+        
+        state = State.STOPPED;
     }
     
-    public void loadMemory(byte[] content) {
-        memory.setContent(content);
-    }
     
     
-    
-    boolean isCondValid(int cond) {
+    private boolean isCondValid(int cond) {
         switch (cond) {
             case 0:
                 return true;
-                
-                
-                
             case 1:
                 return psr.getZ() == 1;
                 
@@ -96,13 +131,46 @@ public class Machine {
                 
             case 15:
                 return !(psr.getV() == psr.getN() && psr.getZ() == 0);
+                
+            default:
+                return false;
         }
         
-        return false;
+        
         
     }
     
     public void next() {
+        
+        if (state == State.STOPPED) {
+            return;
+        }
+        
+        performCycle();
+        
+    }
+    
+   
+    
+    public void stop() {
+        state = State.STOPPED;
+    }
+    
+    public void activate() {
+        state = State.IDLE;
+    }
+    
+    
+    public void run() {
+        state = State.RUNNING;
+        
+        while (state == State.RUNNING) {
+            performCycle();
+        }
+    }
+    
+    
+    private void performCycle() {
         byte byte0 = memory.getByte(pc.getContent());
         pc.increment();
         byte byte1 = memory.getByte(pc.getContent());
@@ -112,28 +180,11 @@ public class Machine {
         byte byte3 = memory.getByte(pc.getContent());
         pc.increment();
         
-        
-        
         Instruction i = new Instruction(byte0, byte1, byte2, byte3);
         
         if (isCondValid(i.getCond())) {
             i.execute(this);
         }
-        
-        
-                
-    }
-    
-    public void start() {
-        
-    }
-    
-    public void stop() {
-        
-    }
-    
-    public ProcessStateRegister getPsr() {
-        return this.psr;
     }
     
     

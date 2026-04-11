@@ -21,21 +21,22 @@ public class AsmEdit {
      * @param args the command line arguments
      */
     public static void main(String[] args) {
-        File file = new File("/home/koukola/Documents/coding/asm/resources/res");
+        File file = new File("/Users/koukola/Documents/asm/resources/res");
         byte[] fileContent = new byte[(int) file.length()];
 
         try (FileInputStream fis = new FileInputStream(file)) {
             int bytesRead = fis.read(fileContent);
             System.out.println("Read " + bytesRead + " bytes.");
         } catch (IOException e) {
-            e.printStackTrace();
+            // e.printStackTrace();
         }
         
         Machine m = new Machine();
         m.reset();
-        m.loadMemory(fileContent);
+        m.getMemory().setContent(fileContent);
         
         Scanner s = new Scanner(System.in);
+        
         
         while (true) {
             m.next();

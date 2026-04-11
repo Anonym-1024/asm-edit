@@ -505,29 +505,85 @@ public class Instructions {
     }
 
     public static void csl(Instruction i, Machine m) {
+        Register dst = m.registers[i.getArg1()];
+        
+        
+        int src;
+        
+        if (i.isI()) {
+            src = i.getByte3();
+        } else {
+            src = m.registers[i.getArg2()].getContent();
+        }
+        
+        int res = ALU.csl(src, m.psr);
+        
+        dst.setContent(res);
     }
 
     public static void csls(Instruction i, Machine m) {
+        Register dst = m.registers[i.getArg1()];
+        
+        
+        int src;
+        
+        if (i.isI()) {
+            src = i.getByte3();
+        } else {
+            src = m.registers[i.getArg2()].getContent();
+        }
+        
+        int res = ALU.csls(src, m.psr);
+        
+        dst.setContent(res);
     }
 
     public static void csr(Instruction i, Machine m) {
+        Register dst = m.registers[i.getArg1()];
+        
+        
+        int src;
+        
+        if (i.isI()) {
+            src = i.getByte3();
+        } else {
+            src = m.registers[i.getArg2()].getContent();
+        }
+        
+        int res = ALU.csr(src, m.psr);
+        
+        dst.setContent(res);
         
     }
 
     public static void csrs(Instruction i, Machine m) {
+        Register dst = m.registers[i.getArg1()];
+        
+        
+        int src;
+        
+        if (i.isI()) {
+            src = i.getByte3();
+        } else {
+            src = m.registers[i.getArg2()].getContent();
+        }
+        
+        int res = ALU.csrs(src, m.psr);
+        
+        dst.setContent(res);
     }
 
     // --- Compare and Discard/Update Flags ---
     public static void cmn(Instruction i, Machine m) {
         
         
-        int src1 = m.registers[i.getArg2()].getContent();
+        int src1 = m.registers[i.getArg1()].getContent();
         int src2;
         
         if (i.isI()) {
             src2 = i.getByte3();
         } else {
-            src2 = m.registers[i.getArg3()].getContent();
+            src2 = m.registers[i.getArg2()].getContent();
         }
         
         int res = ALU.adds(src1, src2, m.psr);
@@ -536,46 +592,46 @@ public class Instructions {
     }
 
     public static void addcd(Instruction i, Machine m) {
-        int src1 = m.registers[i.getArg2()].getContent();
+        int src1 = m.registers[i.getArg1()].getContent();
         int src2;
         
         if (i.isI()) {
             src2 = i.getByte3();
         } else {
-            src2 = m.registers[i.getArg3()].getContent();
+            src2 = m.registers[i.getArg2()].getContent();
         }
         
         int res = ALU.addcs(src1, src2, m.psr);
     }
 
     public static void cmp(Instruction i, Machine m) {
-        int src1 = m.registers[i.getArg2()].getContent();
+        int src1 = m.registers[i.getArg1()].getContent();
         int src2;
         
         if (i.isI()) {
             src2 = i.getByte3();
         } else {
-            src2 = m.registers[i.getArg3()].getContent();
+            src2 = m.registers[i.getArg2()].getContent();
         }
         
         int res = ALU.subs(src1, src2, m.psr);
     }
 
     public static void subcd(Instruction i, Machine m) {
-        int src1 = m.registers[i.getArg2()].getContent();
+        int src1 = m.registers[i.getArg1()].getContent();
         int src2;
         
         if (i.isI()) {
             src2 = i.getByte3();
         } else {
-            src2 = m.registers[i.getArg3()].getContent();
+            src2 = m.registers[i.getArg2()].getContent();
         }
         
         int res = ALU.subcs(src1, src2, m.psr);
     }
 
     public static void andd(Instruction i, Machine m) {
-        int src1 = m.registers[i.getArg2()].getContent();
+        int src1 = m.registers[i.getArg1()].getContent();
         int src2;
         
         if (i.isI()) {
@@ -588,26 +644,26 @@ public class Instructions {
     }
 
     public static void ord(Instruction i, Machine m) {
-        int src1 = m.registers[i.getArg2()].getContent();
+        int src1 = m.registers[i.getArg1()].getContent();
         int src2;
         
         if (i.isI()) {
             src2 = i.getByte3();
         } else {
-            src2 = m.registers[i.getArg3()].getContent();
+            src2 = m.registers[i.getArg2()].getContent();
         }
         
         int res = ALU.ors(src1, src2, m.psr);
     }
 
     public static void eord(Instruction i, Machine m) {
-        int src1 = m.registers[i.getArg2()].getContent();
+        int src1 = m.registers[i.getArg1()].getContent();
         int src2;
         
         if (i.isI()) {
             src2 = i.getByte3();
         } else {
-            src2 = m.registers[i.getArg3()].getContent();
+            src2 = m.registers[i.getArg2()].getContent();
         }
         
         int res = ALU.eors(src1, src2, m.psr);
@@ -622,7 +678,7 @@ public class Instructions {
         if (i.isI()) {
             src = i.getByte3();
         } else {
-            src = m.registers[i.getArg2()].getContent();
+            src = m.registers[i.getArg1()].getContent();
         }
         
         int res = ALU.lsls(src, m.psr);
@@ -636,7 +692,7 @@ public class Instructions {
         if (i.isI()) {
             src = i.getByte3();
         } else {
-            src = m.registers[i.getArg2()].getContent();
+            src = m.registers[i.getArg1()].getContent();
         }
         
         int res = ALU.lsrs(src, m.psr);
@@ -648,7 +704,7 @@ public class Instructions {
         if (i.isI()) {
             src = i.getByte3();
         } else {
-            src = m.registers[i.getArg2()].getContent();
+            src = m.registers[i.getArg1()].getContent();
         }
         
         int res = ALU.asrs(src, m.psr);
@@ -656,9 +712,27 @@ public class Instructions {
     }
 
     public static void csld(Instruction i, Machine m) {
+        int src;
+        
+        if (i.isI()) {
+            src = i.getByte3();
+        } else {
+            src = m.registers[i.getArg1()].getContent();
+        }
+        
+        int res = ALU.csls(src, m.psr);
     }
 
     public static void csrd(Instruction i, Machine m) {
+        int src;
+        
+        if (i.isI()) {
+            src = i.getByte3();
+        } else {
+            src = m.registers[i.getArg1()].getContent();
+        }
+        
+        int res = ALU.csrs(src, m.psr);
     }
 
     // --- Branching ---
