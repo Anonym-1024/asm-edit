@@ -13,9 +13,12 @@ public class Machine {
     protected Register[] registers;
     protected ProgramCounter pc;
     protected InterruptRegister intr;
+    protected InterruptCounter intc;
     protected ProcessStateRegister psr;
+    protected PageTableBaseRegister ptbr;
     protected Memory memory;
     
+   
     
     protected enum State {
         IDLE,
@@ -35,10 +38,12 @@ public class Machine {
         }
         this.pc = new ProgramCounter();
         this.psr = new ProcessStateRegister();
-        this.intr = new InterruptRegister();
-        this.memory = new Memory();
-        
+        this.intr = new InterruptRegister(this);
+        this.ptbr = new PageTableBaseRegister();
+        this.memory = new Memory(this);
+        this.intc = new InterruptCounter();
         this.state = State.STOPPED;
+        
     }
 
     public Register[] getRegisters() {
@@ -76,17 +81,20 @@ public class Machine {
         for (Register r: registers) {
             r.setContent(0);
         }
-        pc.setContent(0);
-        psr.setContent(0);
-        memory.setContent(new byte[0]);
-        //intr
+        pc.reset();
+        psr.reset();
+        intr.clear();
+        intc.reset();
+        memory.clear();
+        intr.clear();
+        ptbr.reset();
         
         state = State.STOPPED;
     }
     
     
     
-    private boolean isCondValid(int cond) {
+    protected boolean isCondValid(int cond) {
         switch (cond) {
             case 0:
                 return true;
@@ -153,6 +161,7 @@ public class Machine {
    
     
     public void stop() {
+        System.out.println("STOPPED");
         state = State.STOPPED;
     }
     
@@ -170,22 +179,71 @@ public class Machine {
     }
     
     
-    private void performCycle() {
-        byte byte0 = memory.getByte(pc.getContent());
+    protected void performCycle() {
+        System.out.println("cycle start");
+        
+        if (intr.isInterrupt()) {
+            System.out.println("cycle continues as interrupted");
+            performInterruptCycle();
+            return;
+        }
+        
+        
+        if (intr.isIRQ() && psr.getIRQM() == 1) {
+            intr.setINT();
+        }
+        
+        
+       
+        memory.setAddress(pc.getContent());
+        byte byte0 = memory.readByteV();
         pc.increment();
-        byte byte1 = memory.getByte(pc.getContent());
+        memory.setAddress(pc.getContent());
+        byte byte1 = memory.readByteV();
         pc.increment();
-        byte byte2 = memory.getByte(pc.getContent());
+        memory.setAddress(pc.getContent());
+        byte byte2 = memory.readByteV();
         pc.increment();
-        byte byte3 = memory.getByte(pc.getContent());
+        memory.setAddress(pc.getContent());
+        byte byte3 = memory.readByteV();
         pc.increment();
+        
+        if (intr.isInterrupt()) {
+            System.out.println("interrupt while loading instaruction");
+            return;
+        }
         
         Instruction i = new Instruction(byte0, byte1, byte2, byte3);
-        
         if (isCondValid(i.getCond())) {
             i.execute(this);
         }
     }
+    
+    
+    protected void performInterruptCycle() {
+        
+        byte byte0 = memory.readByteP(intc.getContent());
+        intc.increment();
+        
+        byte byte1 = memory.readByteP(intc.getContent());
+        intc.increment();
+        
+        byte byte2 = memory.readByteP(intc.getContent());
+        intc.increment();
+       
+        byte byte3 = memory.readByteP(intc.getContent());
+        intc.increment();
+        
+       
+        
+        Instruction i = new Instruction(byte0, byte1, byte2, byte3);
+        if (isCondValid(i.getCond())) {
+            i.execute(this);
+        }
+    }
+    
+    
+    
     
     
     

@@ -69,4 +69,9 @@ public class ProcessStateRegister {
         return (this.content & (1 << 5)) >> 5;
     }
     
+    public void reset() {
+        this.content = 0;
+    }
+    
+    
 }

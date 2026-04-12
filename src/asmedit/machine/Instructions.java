@@ -101,7 +101,15 @@ public class Instructions {
             case 2:
                 m.psr.setContent(src);
                 break;
-            
+            case 3:
+                m.intr.clear();
+                break;
+            case 4:
+                m.ptbr.setByte0(src);
+                break;
+            case 5:
+                m.ptbr.setByte1(src);
+                break;
         }
     }
 
@@ -117,7 +125,15 @@ public class Instructions {
             case 2:
                 src = m.psr.getContent();
                 break;
-            
+            case 3:
+                src = m.intr.getContent();
+                break;
+            case 4:
+                 src = m.ptbr.getByte0();
+                break;
+            case 5:
+                src = m.ptbr.getByte1();
+                break;
         }
         
         m.registers[i.getArg1()].setContent(src);
@@ -125,8 +141,9 @@ public class Instructions {
         
     }
 
-    // --- Memory Access ---
-    public static void ldr(Instruction i, Machine m) {
+    
+    
+     public static void ldrInterrupted(Instruction i, Machine m) {
         int addr = 0;
         if (i.isI()) {
             addr |= i.getByte2();
@@ -137,10 +154,15 @@ public class Instructions {
         }
         
         Register dst = m.registers[i.getArg1()];
-        dst.setContent(m.memory.getByte(addr));
+        
+        int read = m.memory.readByteP(addr);
+        if (m.intr.isInterrupt()) {
+            return;
+        }
+        dst.setContent(read);
     }
 
-    public static void str(Instruction i, Machine m) {
+    private static void strInterrupted(Instruction i, Machine m) {
         int addr = 0;
         if (i.isI()) {
             addr |= i.getByte2();
@@ -151,7 +173,56 @@ public class Instructions {
         }
         
         int src = m.registers[i.getArg1()].getContent();
-        m.memory.setByte(addr, (byte)src);
+        
+        m.memory.writeByteP(addr, (byte)src);
+    }
+    
+    
+    // --- Memory Access ---
+    private static void ldr(Instruction i, Machine m) {
+        
+        if (m.intr.isInterrupt()) {
+            Instructions.ldrInterrupted(i, m);
+            return;
+        }
+        
+        int addr = 0;
+        if (i.isI()) {
+            addr |= i.getByte2();
+            addr |= i.getByte3() << 8;
+        } else {
+            addr |= m.registers[i.getArg2()].getContent();
+            addr |= m.registers[(i.getArg2() + 1) % 16].getContent() << 8;
+        }
+        
+        Register dst = m.registers[i.getArg1()];
+        m.memory.setAddress(addr);
+        int read = m.memory.readByteV();
+        if (m.intr.isInterrupt()) {
+            return;
+        }
+        dst.setContent(read);
+    }
+
+    public static void str(Instruction i, Machine m) {
+        
+        if (m.intr.isInterrupt()) {
+            Instructions.strInterrupted(i, m);
+            return;
+        }
+        
+        int addr = 0;
+        if (i.isI()) {
+            addr |= i.getByte2();
+            addr |= i.getByte3() << 8;
+        } else {
+            addr |= m.registers[i.getArg2()].getContent();
+            addr |= m.registers[(i.getArg2() + 1) % 16].getContent() << 8;
+        }
+        
+        int src = m.registers[i.getArg1()].getContent();
+        m.memory.setAddress(addr);
+        m.memory.writeByteV((byte)src);
     }
 
     // --- Arithmetic ---
@@ -736,7 +807,45 @@ public class Instructions {
     }
 
     // --- Branching ---
+    
+    
+    
+    public static void brInterrupted(Instruction i, Machine m) {
+        int addr = 0;
+        if (i.isI()) {
+            addr |= i.getByte2();
+            addr |= i.getByte3() << 8;
+        } else {
+            addr |= m.registers[i.getArg1()].getContent();
+            addr |= m.registers[(i.getArg1() + 1) % 16].getContent() << 8;
+        }
+        
+        m.intc.setContent(addr);
+    }
+    
+    public static void brlInterrupted(Instruction i, Machine m) {
+        Register link = m.registers[i.getArg1()];
+        
+        int addr = 0;
+        if (i.isI()) {
+            addr |= i.getByte2();
+            addr |= i.getByte3() << 8;
+        } else {
+            addr |= m.registers[i.getArg2()].getContent();
+            addr |= m.registers[(i.getArg2() + 1) % 16].getContent() << 8;
+        }
+        
+        link.setContent(m.pc.getContent());
+        m.intc.setContent(addr);
+    }
+    
     public static void br(Instruction i, Machine m) {
+        
+        if (m.intr.isInterrupt()) {
+            Instructions.brInterrupted(i, m);
+            return;
+        }
+        
         int addr = 0;
         if (i.isI()) {
             addr |= i.getByte2();
@@ -751,6 +860,11 @@ public class Instructions {
     }
 
     public static void brl(Instruction i, Machine m) {
+        
+        if (m.intr.isInterrupt()) {
+            Instructions.brlInterrupted(i, m);
+            return;
+        }
         
         Register link = m.registers[i.getArg1()];
         

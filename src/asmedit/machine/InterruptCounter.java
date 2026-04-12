@@ -8,40 +8,25 @@ package asmedit.machine;
  *
  * @author koukola
  */
-public class ProgramCounter {
+public class InterruptCounter {
     protected int content;
 
-    public ProgramCounter() {
+    public InterruptCounter() {
         this.content = 0;
     }
 
     public int getContent() {
-        return content;
+        return content & 0xFF;
     }
 
     public void setContent(int content) {
-        this.content = content;
+        this.content = content & 0xFF;
     }
+    
     
     public void increment() {
+        System.out.println("in");
         this.content += 1;
-    }
-    
-    public void setByte0(int byte0) {
-        this.content &= 0xFF00;
-        this.content |= (content & 0x00FF);
-    }
-    
-    public void setByte1(int byte1) {
-        this.content &= 0x00FF;
-        this.content |= (content & 0xFF00);
-    }
-    
-    public int getByte0() {
-        return this.content & 0x00FF;
-    }
-    public int getByte1() {
-        return (this.content & 0xFF00) >> 8;
     }
     
     public void reset() {

@@ -21,7 +21,7 @@ public class AsmEdit {
      * @param args the command line arguments
      */
     public static void main(String[] args) {
-        File file = new File("/Users/koukola/Documents/asm/resources/res");
+        File file = new File("/home/koukola/Documents/coding/asm/resources/res");
         byte[] fileContent = new byte[(int) file.length()];
 
         try (FileInputStream fis = new FileInputStream(file)) {
@@ -31,13 +31,30 @@ public class AsmEdit {
             // e.printStackTrace();
         }
         
+        
+        File file2 = new File("/home/koukola/Documents/coding/asm/resources/isr");
+        byte[] fileContent2 = new byte[(int) file2.length()];
+
+        try (FileInputStream fis = new FileInputStream(file2)) {
+            int bytesRead = fis.read(fileContent2);
+            System.out.println("Read " + bytesRead + " bytes.");
+        } catch (IOException e) {
+            // e.printStackTrace();
+        }
+        
+        System.out.println(fileContent.length);
         Machine m = new Machine();
         m.reset();
-        m.getMemory().setContent(fileContent);
+        m.getMemory().initializeVirtualMemory(fileContent);
+        m.getMemory().loadInterruptHandler(fileContent2);
+        
+        for (int i = 0; i < 1030; i++) {
+            System.out.println(m.getMemory().getByte(i));
+        }
         
         Scanner s = new Scanner(System.in);
         
-        
+        m.activate();
         while (true) {
             m.next();
             int n = 0;

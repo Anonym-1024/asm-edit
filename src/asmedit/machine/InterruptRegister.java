@@ -11,12 +11,60 @@ package asmedit.machine;
 
 /*TODO:
 |=====|=====|======|=====|=====|=====|=====|=====|
-|     |     |      |     |     |     |     |     |
+|     |     |      |     | IRQ | PF  | INI | INT |
 |=====|=====|======|=====|=====|=====|=====|=====|
 |  7  |  6  |  5   |  4  |  3  |  2  |  1  |  0  |
 |=====|=====|======|=====|=====|=====|=====|=====|
 */
 
 public class InterruptRegister {
+    protected byte content;
+    
+    protected Machine m;
+
+    public InterruptRegister(Machine m) {
+        this.content = 0;
+        this.m = m;
+    }
+    
+    public void setINT() {
+        this.content |= 0b0001;
+        System.out.println("Interrupt set");
+        
+    }
+    
+    public void setINI() {
+        this.content |= 0b0010;
+        setINT();
+    }
+    
+    public void setPF() {
+        this.content |= 0b0100;
+        setINT();
+    }
+    
+    public void setIRQ() {
+        this.content |= 0b1000;
+    }
+    
+    public int getContent() {
+        return (int)this.content;
+    }
+    
+    public boolean isInterrupt() {
+        return (this.content & 1) == 1;
+    }
+    
+    public boolean isIRQ() {
+        return (this.content & 0b1000) == 0b1000;
+    }
+    
+    public void clear() {
+        this.content = 0;
+        m.intc.reset();
+    }
+    
+    
+    
     
 }
