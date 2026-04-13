@@ -21,7 +21,7 @@ public class AsmEdit {
      * @param args the command line arguments
      */
     public static void main(String[] args) {
-        File file = new File("/home/koukola/Documents/coding/asm/resources/res");
+        File file = new File("/Users/koukola/Documents/asm/resources/res");
         byte[] fileContent = new byte[(int) file.length()];
 
         try (FileInputStream fis = new FileInputStream(file)) {
@@ -32,7 +32,7 @@ public class AsmEdit {
         }
         
         
-        File file2 = new File("/home/koukola/Documents/coding/asm/resources/isr");
+        File file2 = new File("/Users/koukola/Documents/asm/resources/isr");
         byte[] fileContent2 = new byte[(int) file2.length()];
 
         try (FileInputStream fis = new FileInputStream(file2)) {

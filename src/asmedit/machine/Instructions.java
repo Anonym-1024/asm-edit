@@ -893,6 +893,7 @@ public class Instructions {
 
     // --- System / Exit ---
     public static void svc(Instruction i, Machine m) {
+        m.intr.setSVC();
     }
 
     public static void exit(Instruction i, Machine m) {

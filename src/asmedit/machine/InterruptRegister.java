@@ -11,7 +11,7 @@ package asmedit.machine;
 
 /*TODO:
 |=====|=====|======|=====|=====|=====|=====|=====|
-|     |     |      |     | IRQ | PF  | INI | INT |
+|     |     |      | IRQ | SVC | PF  | INI | INT |
 |=====|=====|======|=====|=====|=====|=====|=====|
 |  7  |  6  |  5   |  4  |  3  |  2  |  1  |  0  |
 |=====|=====|======|=====|=====|=====|=====|=====|
@@ -28,23 +28,28 @@ public class InterruptRegister {
     }
     
     public void setINT() {
-        this.content |= 0b0001;
+        this.content |= 0b00001;
         System.out.println("Interrupt set");
         
     }
     
     public void setINI() {
-        this.content |= 0b0010;
+        this.content |= 0b00010;
         setINT();
     }
     
     public void setPF() {
-        this.content |= 0b0100;
+        this.content |= 0b00100;
         setINT();
     }
     
     public void setIRQ() {
-        this.content |= 0b1000;
+        this.content |= 0b10000;
+    }
+    
+    public void setSVC() {
+        this.content |= 0b01000;
+        setINT();
     }
     
     public int getContent() {
@@ -56,7 +61,7 @@ public class InterruptRegister {
     }
     
     public boolean isIRQ() {
-        return (this.content & 0b1000) == 0b1000;
+        return (this.content & 0b10000) == 0b10000;
     }
     
     public void clear() {
