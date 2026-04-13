@@ -27,8 +27,8 @@ public class Instructions {
         Register dst2 = m.registers[(i.getArg1() + 1) % 16];
         
         if (i.isI()) {
-            dst1.setContent(i.getByte2());
-            dst2.setContent(i.getByte3());
+            dst1.setContent(i.getByte3());
+            dst2.setContent(i.getByte2());
         } else {
             int src1 = m.registers[i.getArg2()].getContent();
             int src2 = m.registers[(i.getArg2() + 1) % 16].getContent();
@@ -146,8 +146,8 @@ public class Instructions {
      public static void ldrInterrupted(Instruction i, Machine m) {
         int addr = 0;
         if (i.isI()) {
-            addr |= i.getByte2();
-            addr |= i.getByte3() << 8;
+            addr |= i.getByte3();
+            addr |= i.getByte2() << 8;
         } else {
             addr |= m.registers[i.getArg2()].getContent();
             addr |= m.registers[(i.getArg2() + 1) % 16].getContent() << 8;
@@ -165,8 +165,8 @@ public class Instructions {
     private static void strInterrupted(Instruction i, Machine m) {
         int addr = 0;
         if (i.isI()) {
-            addr |= i.getByte2();
-            addr |= i.getByte3() << 8;
+            addr |= i.getByte3();
+            addr |= i.getByte2() << 8;
         } else {
             addr |= m.registers[i.getArg2()].getContent();
             addr |= m.registers[(i.getArg2() + 1) % 16].getContent() << 8;
@@ -188,8 +188,8 @@ public class Instructions {
         
         int addr = 0;
         if (i.isI()) {
-            addr |= i.getByte2();
-            addr |= i.getByte3() << 8;
+            addr |= i.getByte3();
+            addr |= i.getByte2() << 8;
         } else {
             addr |= m.registers[i.getArg2()].getContent();
             addr |= m.registers[(i.getArg2() + 1) % 16].getContent() << 8;
@@ -213,8 +213,8 @@ public class Instructions {
         
         int addr = 0;
         if (i.isI()) {
-            addr |= i.getByte2();
-            addr |= i.getByte3() << 8;
+            addr |= i.getByte3();
+            addr |= i.getByte2() << 8;
         } else {
             addr |= m.registers[i.getArg2()].getContent();
             addr |= m.registers[(i.getArg2() + 1) % 16].getContent() << 8;
@@ -813,8 +813,8 @@ public class Instructions {
     public static void brInterrupted(Instruction i, Machine m) {
         int addr = 0;
         if (i.isI()) {
-            addr |= i.getByte2();
-            addr |= i.getByte3() << 8;
+            addr |= i.getByte3();
+            addr |= i.getByte2() << 8;
         } else {
             addr |= m.registers[i.getArg1()].getContent();
             addr |= m.registers[(i.getArg1() + 1) % 16].getContent() << 8;
@@ -828,8 +828,8 @@ public class Instructions {
         
         int addr = 0;
         if (i.isI()) {
-            addr |= i.getByte2();
-            addr |= i.getByte3() << 8;
+            addr |= i.getByte3();
+            addr |= i.getByte2() << 8;
         } else {
             addr |= m.registers[i.getArg2()].getContent();
             addr |= m.registers[(i.getArg2() + 1) % 16].getContent() << 8;
@@ -848,8 +848,8 @@ public class Instructions {
         
         int addr = 0;
         if (i.isI()) {
-            addr |= i.getByte2();
-            addr |= i.getByte3() << 8;
+            addr |= i.getByte3();
+            addr |= i.getByte2() << 8;
         } else {
             addr |= m.registers[i.getArg1()].getContent();
             addr |= m.registers[(i.getArg1() + 1) % 16].getContent() << 8;
@@ -870,8 +870,8 @@ public class Instructions {
         
         int addr = 0;
         if (i.isI()) {
-            addr |= i.getByte2();
-            addr |= i.getByte3() << 8;
+            addr |= i.getByte3();
+            addr |= i.getByte2() << 8;
         } else {
             addr |= m.registers[i.getArg2()].getContent();
             addr |= m.registers[(i.getArg2() + 1) % 16].getContent() << 8;
