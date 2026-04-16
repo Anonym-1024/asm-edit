@@ -10,15 +10,24 @@ package asmedit.machine;
  */
 
 public class Machine {
+    
+    protected MachineConfig config;
+    protected State state;
+    
+    protected ControlUnit controlUnit;
+    
     protected Register[] registers;
+    protected ALU alu;
     protected ProgramCounter pc;
-    protected InterruptRegister intr;
-    protected InterruptCounter intc;
+    protected InterruptProgramCounter intpc;
+    
     protected ProcessStateRegister psr;
+    protected InterruptRegister intr;
+    
     protected PageTableBaseRegister ptbr;
     protected Memory memory;
     
-   
+    
     
     protected enum State {
         IDLE,
@@ -26,23 +35,24 @@ public class Machine {
         RUNNING,
     }
     
-    protected State state;
+    
 
     
     
     
     public Machine() {
-        this.registers = new Register[16];
-        for (int i = 0; i < 16; i++) {
-            this.registers[i] = new Register();
-        }
-        this.pc = new ProgramCounter();
-        this.psr = new ProcessStateRegister();
-        this.intr = new InterruptRegister(this);
-        this.ptbr = new PageTableBaseRegister();
-        this.memory = new Memory(this);
-        this.intc = new InterruptCounter();
-        this.state = State.STOPPED;
+       this.config = new MachineConfig();
+       this.state = State.STOPPED;
+       this.controlUnit = new ControlUnit();
+       this.registers = new Register[16];
+       this.alu = new ALU();
+       this.pc = new ProgramCounter();
+       this.intpc = new InterruptProgramCounter();
+       this.psr = new ProcessStateRegister();
+       this.intr = new InterruptRegister();
+       this.ptbr = new PageTableBaseRegister();
+       this.memory = new Memory();
+       
         
     }
 
@@ -70,10 +80,7 @@ public class Machine {
     
     
     
-    
-    
-    public void reset() {
-        
+    public void startAndBoot() {
         if (state != State.STOPPED) {
             return;
         }
@@ -81,166 +88,42 @@ public class Machine {
         for (Register r: registers) {
             r.setContent(0);
         }
-        pc.reset();
-        psr.reset();
+        
+        pc.setContent(config.bootAddress);
+        intpc.setDefaultAddress(config.interruptAddress);
+        intpc.reset();
+        
+        psr.setContent(0);
         intr.clear();
-        intc.reset();
-        memory.clear();
-        intr.clear();
-        ptbr.reset();
+        ptbr.setContent(0);
         
-        state = State.STOPPED;
-    }
-    
-    
-    
-    protected boolean isCondValid(int cond) {
-        switch (cond) {
-            case 0:
-                return true;
-            case 1:
-                return psr.getZ() == 1;
-                
-            case 2:
-                return psr.getN() == 1;
-                
-            case 3:
-                return psr.getV() == 1;
-                
-            case 4:
-                return psr.getC() == 0;
-                
-            case 5:
-                return psr.getC() == 1 && psr.getZ() == 0;
-                
-            case 6:
-                return psr.getV() != psr.getN();
-                
-            case 7:
-                return psr.getV() == psr.getN() && psr.getZ() == 0;
-                
-            case 9:
-                return !(psr.getZ() == 1);
-                
-            case 10:
-                return !(psr.getN() == 1);
-                
-            case 11:
-                return !(psr.getV() == 1);
-                
-            case 12:
-                return !(psr.getC() == 0);
-                
-            case 13:
-                return !(psr.getC() == 1 && psr.getZ() == 0);
-                
-            case 14:
-                return !(psr.getV() != psr.getN());
-                
-            case 15:
-                return !(psr.getV() == psr.getN() && psr.getZ() == 0);
-                
-            default:
-                return false;
-        }
+        memory.setBytes(0, config.defaultMemory);
         
-        
-        
-    }
-    
-    public void next() {
-        
-        if (state == State.STOPPED) {
-            return;
-        }
-        
-        performCycle();
-        
-    }
-    
-   
-    
-    public void stop() {
-        System.out.println("STOPPED");
-        state = State.STOPPED;
-    }
-    
-    public void activate() {
         state = State.IDLE;
     }
     
     
+    
+    
+    public void nextCycle() {
+        
+    }
+    
     public void run() {
-        state = State.RUNNING;
         
-        while (state == State.RUNNING) {
-            performCycle();
-        }
+    }
+    
+    public void stop() {
+        
+    }
+   
+    public void pause() {
+        
     }
     
     
-    protected void performCycle() {
-        System.out.println("cycle start");
-        
-        if (intr.isInterrupt()) {
-            System.out.println("cycle continues as interrupted");
-            performInterruptCycle();
-            return;
-        }
-        
-        
-        if (intr.isIRQ() && psr.getIRQM() == 1) {
-            intr.setINT();
-        }
-        
-        
-       
-        memory.setAddress(pc.getContent());
-        byte byte0 = memory.readByteV();
-        pc.increment();
-        memory.setAddress(pc.getContent());
-        byte byte1 = memory.readByteV();
-        pc.increment();
-        memory.setAddress(pc.getContent());
-        byte byte2 = memory.readByteV();
-        pc.increment();
-        memory.setAddress(pc.getContent());
-        byte byte3 = memory.readByteV();
-        pc.increment();
-        
-        if (intr.isInterrupt()) {
-            System.out.println("interrupt while loading instaruction");
-            return;
-        }
-        
-        Instruction i = new Instruction(byte0, byte1, byte2, byte3);
-        if (isCondValid(i.getCond())) {
-            i.execute(this);
-        }
-    }
     
     
-    protected void performInterruptCycle() {
-        
-        byte byte0 = memory.readByteP(intc.getContent());
-        intc.increment();
-        
-        byte byte1 = memory.readByteP(intc.getContent());
-        intc.increment();
-        
-        byte byte2 = memory.readByteP(intc.getContent());
-        intc.increment();
-       
-        byte byte3 = memory.readByteP(intc.getContent());
-        intc.increment();
-        
-       
-        
-        Instruction i = new Instruction(byte0, byte1, byte2, byte3);
-        if (isCondValid(i.getCond())) {
-            i.execute(this);
-        }
-    }
     
     
     

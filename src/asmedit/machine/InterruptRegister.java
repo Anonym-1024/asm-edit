@@ -20,11 +20,10 @@ package asmedit.machine;
 public class InterruptRegister {
     protected byte content;
     
-    protected Machine m;
+    
 
-    public InterruptRegister(Machine m) {
+    public InterruptRegister() {
         this.content = 0;
-        this.m = m;
     }
     
     public void setINT() {
@@ -66,8 +65,9 @@ public class InterruptRegister {
     
     public void clear() {
         this.content = 0;
-        m.intc.reset();
     }
+    
+    
     
     
     

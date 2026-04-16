@@ -10,8 +10,96 @@ import java.util.function.BiConsumer;
  *
  * @author koukola
  */
-public class Instructions {
-    public static void mov(Instruction i, Machine m) {
+public class ControlUnit {
+    
+    protected Machine m;
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+     protected boolean isCondValid(int cond) {
+        switch (cond) {
+            case 0:
+                return true;
+            case 1:
+                return m.psr.getZ() == 1;
+                
+            case 2:
+                return m.psr.getN() == 1;
+                
+            case 3:
+                return m.psr.getV() == 1;
+                
+            case 4:
+                return m.psr.getC() == 0;
+                
+            case 5:
+                return m.psr.getC() == 1 && m.psr.getZ() == 0;
+                
+            case 6:
+                return m.psr.getV() != m.psr.getN();
+                
+            case 7:
+                return m.psr.getV() == m.psr.getN() && m.psr.getZ() == 0;
+                
+            case 9:
+                return !(m.psr.getZ() == 1);
+                
+            case 10:
+                return !(m.psr.getN() == 1);
+                
+            case 11:
+                return !(m.psr.getV() == 1);
+                
+            case 12:
+                return !(m.psr.getC() == 0);
+                
+            case 13:
+                return !(m.psr.getC() == 1 && m.psr.getZ() == 0);
+                
+            case 14:
+                return !(m.psr.getV() != m.psr.getN());
+                
+            case 15:
+                return !(m.psr.getV() == m.psr.getN() && m.psr.getZ() == 0);
+                
+            default:
+                return false;
+        }
+        
+        
+        
+    }
+    
+    
+
+    
+    
+    
+    public void mov(Instruction i) {
         Register dst = m.registers[i.getArg1()];
         if (i.isI()) {
             int imm = i.getByte3();
@@ -22,7 +110,7 @@ public class Instructions {
         }
     }
 
-    public static void mova(Instruction i, Machine m) {
+    public void mova(Instruction i) {
         Register dst1 = m.registers[i.getArg1()];
         Register dst2 = m.registers[(i.getArg1() + 1) % 16];
         
@@ -39,7 +127,7 @@ public class Instructions {
         
     }
 
-    public static void movs(Instruction i, Machine m) {
+    public void movs(Instruction i) {
         
         Register dst = m.registers[i.getArg1()];
         
@@ -54,7 +142,7 @@ public class Instructions {
         }
     }
 
-    public static void mvn(Instruction i, Machine m) {
+    public void mvn(Instruction i) {
         Register dst = m.registers[i.getArg1()];
         
         if (i.isI()) {
@@ -68,7 +156,7 @@ public class Instructions {
         }
     }
 
-    public static void mvns(Instruction i, Machine m) {
+    public void mvns(Instruction i) {
         
         Register dst = m.registers[i.getArg1()];
         
@@ -83,7 +171,7 @@ public class Instructions {
         }
     }
 
-    public static void srw(Instruction i, Machine m) {
+    public void srw(Instruction i) {
         int src;
         if (i.isI()) {
             src = i.getByte3();
@@ -113,7 +201,7 @@ public class Instructions {
         }
     }
 
-    public static void srr(Instruction i, Machine m) {
+    public void srr(Instruction i) {
         int src = 0;
         switch (i.getArg2()) {
             case 0:
@@ -143,48 +231,15 @@ public class Instructions {
 
     
     
-     public static void ldrInterrupted(Instruction i, Machine m) {
-        int addr = 0;
-        if (i.isI()) {
-            addr |= i.getByte3();
-            addr |= i.getByte2() << 8;
-        } else {
-            addr |= m.registers[i.getArg2()].getContent();
-            addr |= m.registers[(i.getArg2() + 1) % 16].getContent() << 8;
-        }
-        
-        Register dst = m.registers[i.getArg1()];
-        
-        int read = m.memory.readByteP(addr);
-        if (m.intr.isInterrupt()) {
-            return;
-        }
-        dst.setContent(read);
-    }
+     
 
-    private static void strInterrupted(Instruction i, Machine m) {
-        int addr = 0;
-        if (i.isI()) {
-            addr |= i.getByte3();
-            addr |= i.getByte2() << 8;
-        } else {
-            addr |= m.registers[i.getArg2()].getContent();
-            addr |= m.registers[(i.getArg2() + 1) % 16].getContent() << 8;
-        }
-        
-        int src = m.registers[i.getArg1()].getContent();
-        
-        m.memory.writeByteP(addr, (byte)src);
-    }
+   
     
     
     // --- Memory Access ---
-    private static void ldr(Instruction i, Machine m) {
+    private void ldr(Instruction i) {
         
-        if (m.intr.isInterrupt()) {
-            Instructions.ldrInterrupted(i, m);
-            return;
-        }
+        
         
         int addr = 0;
         if (i.isI()) {
@@ -198,18 +253,13 @@ public class Instructions {
         Register dst = m.registers[i.getArg1()];
         m.memory.setAddress(addr);
         int read = m.memory.readByteV();
-        if (m.intr.isInterrupt()) {
-            return;
-        }
+        
         dst.setContent(read);
     }
 
-    public static void str(Instruction i, Machine m) {
+    public void str(Instruction i) {
         
-        if (m.intr.isInterrupt()) {
-            Instructions.strInterrupted(i, m);
-            return;
-        }
+        
         
         int addr = 0;
         if (i.isI()) {
@@ -226,7 +276,7 @@ public class Instructions {
     }
 
     // --- Arithmetic ---
-    public static void add(Instruction i, Machine m) {
+    public void add(Instruction i) {
         Register dst = m.registers[i.getArg1()];
         
         int src1 = m.registers[i.getArg2()].getContent();
@@ -244,7 +294,7 @@ public class Instructions {
                 
     }
 
-    public static void adds(Instruction i, Machine m) {
+    public void adds(Instruction i) {
         Register dst = m.registers[i.getArg1()];
         
         int src1 = m.registers[i.getArg2()].getContent();
@@ -261,7 +311,7 @@ public class Instructions {
         dst.setContent(res);
     }
 
-    public static void addc(Instruction i, Machine m) {
+    public void addc(Instruction i) {
         Register dst = m.registers[i.getArg1()];
         
         int src1 = m.registers[i.getArg2()].getContent();
@@ -278,7 +328,7 @@ public class Instructions {
         dst.setContent(res);
     }
 
-    public static void addcs(Instruction i, Machine m) {
+    public void addcs(Instruction i) {
         Register dst = m.registers[i.getArg1()];
         
         int src1 = m.registers[i.getArg2()].getContent();
@@ -295,7 +345,7 @@ public class Instructions {
         dst.setContent(res);
     }
 
-    public static void sub(Instruction i, Machine m) {
+    public void sub(Instruction i) {
         Register dst = m.registers[i.getArg1()];
         
         int src1 = m.registers[i.getArg2()].getContent();
@@ -312,7 +362,7 @@ public class Instructions {
         dst.setContent(res);
     }
 
-    public static void subs(Instruction i, Machine m) {
+    public void subs(Instruction i) {
         Register dst = m.registers[i.getArg1()];
         
         int src1 = m.registers[i.getArg2()].getContent();
@@ -329,7 +379,7 @@ public class Instructions {
         dst.setContent(res);
     }
 
-    public static void subc(Instruction i, Machine m) {
+    public void subc(Instruction i) {
         Register dst = m.registers[i.getArg1()];
         
         int src1 = m.registers[i.getArg2()].getContent();
@@ -346,7 +396,7 @@ public class Instructions {
         dst.setContent(res);
     }
 
-    public static void subcs(Instruction i, Machine m) {
+    public void subcs(Instruction i) {
         Register dst = m.registers[i.getArg1()];
         
         int src1 = m.registers[i.getArg2()].getContent();
@@ -364,7 +414,7 @@ public class Instructions {
     }
 
     // --- Logical ---
-    public static void and(Instruction i, Machine m) {
+    public void and(Instruction i) {
         
         Register dst = m.registers[i.getArg1()];
         
@@ -385,7 +435,7 @@ public class Instructions {
 
     }
 
-    public static void ands(Instruction i, Machine m) {
+    public void ands(Instruction i) {
         Register dst = m.registers[i.getArg1()];
         
         int src1 = m.registers[i.getArg2()].getContent();
@@ -402,7 +452,7 @@ public class Instructions {
         dst.setContent(res);
     }
 
-    public static void or(Instruction i, Machine m) {
+    public void or(Instruction i) {
         Register dst = m.registers[i.getArg1()];
         
         int src1 = m.registers[i.getArg2()].getContent();
@@ -419,7 +469,7 @@ public class Instructions {
         dst.setContent(res);
     }
 
-    public static void ors(Instruction i, Machine m) {
+    public void ors(Instruction i) {
         Register dst = m.registers[i.getArg1()];
         
         int src1 = m.registers[i.getArg2()].getContent();
@@ -436,7 +486,7 @@ public class Instructions {
         dst.setContent(res);
     }
 
-    public static void eor(Instruction i, Machine m) {
+    public void eor(Instruction i) {
         Register dst = m.registers[i.getArg1()];
         
         int src1 = m.registers[i.getArg2()].getContent();
@@ -453,7 +503,7 @@ public class Instructions {
         dst.setContent(res);
     }
 
-    public static void eors(Instruction i, Machine m) {
+    public void eors(Instruction i) {
         Register dst = m.registers[i.getArg1()];
         
         int src1 = m.registers[i.getArg2()].getContent();
@@ -471,7 +521,7 @@ public class Instructions {
     }
 
     // --- Shifts and Rotates ---
-    public static void lsl(Instruction i, Machine m) {
+    public void lsl(Instruction i) {
         Register dst = m.registers[i.getArg1()];
         
         
@@ -489,7 +539,7 @@ public class Instructions {
         dst.setContent(res);
     }
 
-    public static void lsls(Instruction i, Machine m) {
+    public void lsls(Instruction i) {
         Register dst = m.registers[i.getArg1()];
         
         
@@ -507,7 +557,7 @@ public class Instructions {
         dst.setContent(res);
     }
 
-    public static void lsr(Instruction i, Machine m) {
+    public void lsr(Instruction i) {
         Register dst = m.registers[i.getArg1()];
         
         
@@ -524,7 +574,7 @@ public class Instructions {
         dst.setContent(res);
     }
 
-    public static void lsrs(Instruction i, Machine m) {
+    public void lsrs(Instruction i) {
         Register dst = m.registers[i.getArg1()];
         
         
@@ -541,7 +591,7 @@ public class Instructions {
         dst.setContent(res);
     }
 
-    public static void asr(Instruction i, Machine m) {
+    public void asr(Instruction i) {
         Register dst = m.registers[i.getArg1()];
         
         
@@ -558,7 +608,7 @@ public class Instructions {
         dst.setContent(res);
     }
 
-    public static void asrs(Instruction i, Machine m) {
+    public void asrs(Instruction i) {
         Register dst = m.registers[i.getArg1()];
         
         
@@ -575,7 +625,7 @@ public class Instructions {
         dst.setContent(res);
     }
 
-    public static void csl(Instruction i, Machine m) {
+    public void csl(Instruction i) {
         Register dst = m.registers[i.getArg1()];
         
         
@@ -592,7 +642,7 @@ public class Instructions {
         dst.setContent(res);
     }
 
-    public static void csls(Instruction i, Machine m) {
+    public void csls(Instruction i) {
         Register dst = m.registers[i.getArg1()];
         
         
@@ -609,7 +659,7 @@ public class Instructions {
         dst.setContent(res);
     }
 
-    public static void csr(Instruction i, Machine m) {
+    public void csr(Instruction i) {
         Register dst = m.registers[i.getArg1()];
         
         
@@ -627,7 +677,7 @@ public class Instructions {
         
     }
 
-    public static void csrs(Instruction i, Machine m) {
+    public void csrs(Instruction i) {
         Register dst = m.registers[i.getArg1()];
         
         
@@ -645,7 +695,7 @@ public class Instructions {
     }
 
     // --- Compare and Discard/Update Flags ---
-    public static void cmn(Instruction i, Machine m) {
+    public void cmn(Instruction i) {
         
         
         int src1 = m.registers[i.getArg1()].getContent();
@@ -662,7 +712,7 @@ public class Instructions {
         
     }
 
-    public static void addcd(Instruction i, Machine m) {
+    public void addcd(Instruction i) {
         int src1 = m.registers[i.getArg1()].getContent();
         int src2;
         
@@ -675,7 +725,7 @@ public class Instructions {
         int res = ALU.addcs(src1, src2, m.psr);
     }
 
-    public static void cmp(Instruction i, Machine m) {
+    public void cmp(Instruction i) {
         int src1 = m.registers[i.getArg1()].getContent();
         int src2;
         
@@ -688,7 +738,7 @@ public class Instructions {
         int res = ALU.subs(src1, src2, m.psr);
     }
 
-    public static void subcd(Instruction i, Machine m) {
+    public void subcd(Instruction i) {
         int src1 = m.registers[i.getArg1()].getContent();
         int src2;
         
@@ -701,7 +751,7 @@ public class Instructions {
         int res = ALU.subcs(src1, src2, m.psr);
     }
 
-    public static void andd(Instruction i, Machine m) {
+    public void andd(Instruction i) {
         int src1 = m.registers[i.getArg1()].getContent();
         int src2;
         
@@ -714,7 +764,7 @@ public class Instructions {
         int res = ALU.ands(src1, src2, m.psr);
     }
 
-    public static void ord(Instruction i, Machine m) {
+    public void ord(Instruction i) {
         int src1 = m.registers[i.getArg1()].getContent();
         int src2;
         
@@ -727,7 +777,7 @@ public class Instructions {
         int res = ALU.ors(src1, src2, m.psr);
     }
 
-    public static void eord(Instruction i, Machine m) {
+    public void eord(Instruction i) {
         int src1 = m.registers[i.getArg1()].getContent();
         int src2;
         
@@ -740,7 +790,7 @@ public class Instructions {
         int res = ALU.eors(src1, src2, m.psr);
     }
 
-    public static void lsld(Instruction i, Machine m) {
+    public void lsld(Instruction i) {
         
         
         
@@ -757,7 +807,7 @@ public class Instructions {
         
     }
 
-    public static void lsrd(Instruction i, Machine m) {
+    public void lsrd(Instruction i) {
         int src;
         
         if (i.isI()) {
@@ -769,7 +819,7 @@ public class Instructions {
         int res = ALU.lsrs(src, m.psr);
     }
 
-    public static void asrd(Instruction i, Machine m) {
+    public void asrd(Instruction i) {
         int src;
         
         if (i.isI()) {
@@ -782,7 +832,7 @@ public class Instructions {
         
     }
 
-    public static void csld(Instruction i, Machine m) {
+    public void csld(Instruction i) {
         int src;
         
         if (i.isI()) {
@@ -794,7 +844,7 @@ public class Instructions {
         int res = ALU.csls(src, m.psr);
     }
 
-    public static void csrd(Instruction i, Machine m) {
+    public void csrd(Instruction i) {
         int src;
         
         if (i.isI()) {
@@ -810,41 +860,13 @@ public class Instructions {
     
     
     
-    public static void brInterrupted(Instruction i, Machine m) {
-        int addr = 0;
-        if (i.isI()) {
-            addr |= i.getByte3();
-            addr |= i.getByte2() << 8;
-        } else {
-            addr |= m.registers[i.getArg1()].getContent();
-            addr |= m.registers[(i.getArg1() + 1) % 16].getContent() << 8;
-        }
-        
-        m.intc.setContent(addr);
-    }
     
-    public static void brlInterrupted(Instruction i, Machine m) {
-        Register link = m.registers[i.getArg1()];
-        
-        int addr = 0;
-        if (i.isI()) {
-            addr |= i.getByte3();
-            addr |= i.getByte2() << 8;
-        } else {
-            addr |= m.registers[i.getArg2()].getContent();
-            addr |= m.registers[(i.getArg2() + 1) % 16].getContent() << 8;
-        }
-        
-        link.setContent(m.pc.getContent());
-        m.intc.setContent(addr);
-    }
     
-    public static void br(Instruction i, Machine m) {
+    
+    
+    public void br(Instruction i) {
         
-        if (m.intr.isInterrupt()) {
-            Instructions.brInterrupted(i, m);
-            return;
-        }
+        
         
         int addr = 0;
         if (i.isI()) {
@@ -859,12 +881,9 @@ public class Instructions {
         
     }
 
-    public static void brl(Instruction i, Machine m) {
+    public void brl(Instruction i) {
         
-        if (m.intr.isInterrupt()) {
-            Instructions.brlInterrupted(i, m);
-            return;
-        }
+        
         
         Register link = m.registers[i.getArg1()];
         
@@ -882,99 +901,25 @@ public class Instructions {
     }
 
     // --- Port / System I/O ---
-    public static void ptr(Instruction i, Machine m) {
+    public void ptr(Instruction i) {
     }
 
-    public static void ptw(Instruction i, Machine m) {
+    public void ptw(Instruction i) {
     }
 
-    public static void ptsr(Instruction i, Machine m) {
+    public void ptsr(Instruction i) {
     }
 
     // --- System / Exit ---
-    public static void svc(Instruction i, Machine m) {
+    public void svc(Instruction i) {
         m.intr.setSVC();
     }
 
-    public static void exit(Instruction i, Machine m) {
+    public void exit(Instruction i) {
         m.stop();
+        
     }
     
     
     
-
-
-// 2. Create the array of method references in the exact requested order
-public static final InstructionHandler[] INSTRUCTION_TABLE = new InstructionHandler[] {
-        Instructions::mov,
-        Instructions::mova,
-        Instructions::movs,
-        Instructions::mvn,
-        Instructions::mvns,
-        Instructions::srw,
-        Instructions::srr,
-
-        Instructions::ldr,
-        Instructions::str,
-
-        Instructions::add,
-        Instructions::adds,
-        Instructions::addc,
-        Instructions::addcs,
-        Instructions::sub,
-        Instructions::subs,
-        Instructions::subc,
-        Instructions::subcs,
-
-        Instructions::and,
-        Instructions::ands,
-        Instructions::or,
-        Instructions::ors,
-        Instructions::eor,
-        Instructions::eors,
-
-        Instructions::lsl,
-        Instructions::lsls,
-        Instructions::lsr,
-        Instructions::lsrs,
-        Instructions::asr,
-        Instructions::asrs,
-
-        Instructions::csl,
-        Instructions::csls,
-        Instructions::csr,
-        Instructions::csrs,
-
-        Instructions::cmn,
-        Instructions::addcd,
-        Instructions::cmp,
-        Instructions::subcd,
-
-        Instructions::andd,
-        Instructions::ord,
-        Instructions::eord,
-
-        Instructions::lsld,
-        Instructions::lsrd,
-        Instructions::asrd,
-        Instructions::csld,
-        Instructions::csrd,
-
-        Instructions::br,
-        Instructions::brl,
-
-        Instructions::ptr,
-        Instructions::ptw,
-        Instructions::ptsr,
-
-        Instructions::svc,
-        Instructions::exit
-    };
-    
-}
-
-
-@FunctionalInterface
-interface InstructionHandler {
-    void execute(Instruction i, Machine m);
 }

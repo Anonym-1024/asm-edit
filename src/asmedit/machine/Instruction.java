@@ -58,11 +58,6 @@ public class Instruction {
         return byte3;
     }
 
-    public void execute(Machine m) {
-        System.out.println(this.getOpcode());
-        Instructions.INSTRUCTION_TABLE[this.getOpcode()].execute(this, m);
-        System.out.println("executed");
-    }
     
     
 

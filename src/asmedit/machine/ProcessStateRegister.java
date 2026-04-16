@@ -11,7 +11,7 @@ package asmedit.machine;
 
 /*
 |=====|=====|======|=====|=====|=====|=====|=====|
-|     PL    | IRQM |#####|  Z  |  N  |  C  |  V  |
+|   STATE   | IRQM |#####|  Z  |  N  |  C  |  V  |
 |=====|=====|======|=====|=====|=====|=====|=====|
 |  7  |  6  |  5   |  4  |  3  |  2  |  1  |  0  |
 |=====|=====|======|=====|=====|=====|=====|=====|
@@ -61,7 +61,7 @@ public class ProcessStateRegister {
         return (this.content & (1));
     }
     
-    public int getPL() {
+    public int getState() {
         return (this.content & (0b11 << 6)) >> 6;
     }
     
