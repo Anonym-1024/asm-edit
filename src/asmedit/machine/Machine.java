@@ -4,6 +4,8 @@
  */
 package asmedit.machine;
 
+import java.util.Vector;
+
 /**
  *
  * @author koukola
@@ -29,7 +31,7 @@ public class Machine {
     
     
     
-    protected enum State {
+    public enum State {
         IDLE,
         STOPPED,
         RUNNING,
@@ -41,10 +43,14 @@ public class Machine {
     
     
     public Machine() {
+        
        this.config = new MachineConfig();
        this.state = State.STOPPED;
-       this.controlUnit = new ControlUnit();
+       this.controlUnit = new ControlUnit(this);
        this.registers = new Register[16];
+       for (int i = 0; i < 16; i++) {
+           registers[i] = new Register();
+       }
        this.alu = new ALU();
        this.pc = new ProgramCounter();
        this.intpc = new InterruptProgramCounter();
@@ -75,6 +81,20 @@ public class Machine {
     public Memory getMemory() {
         return memory;
     }
+
+    public void setConfig(MachineConfig config) {
+        this.config = config;
+    }
+
+    public MachineConfig getConfig() {
+        return config;
+    }
+
+    public State getState() {
+        return state;
+    }
+    
+    
     
     
     
@@ -106,19 +126,24 @@ public class Machine {
     
     
     public void nextCycle() {
-        
+        if (state == State.IDLE) {
+            controlUnit.cycle();
+        }
     }
     
     public void run() {
-        
+        state = State.RUNNING;
+        while (state == State.RUNNING) {
+            controlUnit.cycle();
+        }
     }
     
     public void stop() {
-        
+        state = State.STOPPED;
     }
    
     public void pause() {
-        
+        state = State.IDLE;
     }
     
     

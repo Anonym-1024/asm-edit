@@ -29,12 +29,12 @@ public class ProgramCounter {
     
     public void setByte0(int byte0) {
         this.content &= 0xFF00;
-        this.content |= (content & 0x00FF);
+        this.content |= (byte0 & 0x00FF);
     }
     
     public void setByte1(int byte1) {
         this.content &= 0x00FF;
-        this.content |= (content & 0xFF00);
+        this.content |= (byte1 & 0xFF00);
     }
     
     public int getByte0() {

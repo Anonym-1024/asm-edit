@@ -26,6 +26,15 @@ package asmedit.machine;
 */
 
 
+/* PTER
+|=====|=====|======|=====|=====|=====|======|=====|========================================================================|
+|     |     |      |     |     |     |      |     |     |     |     |     |     |     |      |     |     |     |     |     |
+|=====|=====|======|=====|=====|=====|======|=====|=====|=====|=====|=====|=====|=====|======|=====|=====|=====|=====|=====|
+|     |     |      |     | 15  | 14  | 13   | 12  | 11  | 10  |  9  |  8  |  7  |  6  |  5   |  4  |  3  |  2  |  1  |  0  |
+|=====|=====|======|=====|=====|=====|======|=====|=====|=====|=====|=====|=====|=====|======|=====|=====|=====|=====|=====|
+*/
+
+
 public class PageTableBaseRegister {
     protected int content;
 
@@ -47,12 +56,12 @@ public class PageTableBaseRegister {
     
     public void setByte0(int byte0) {
         this.content &= 0xFF00;
-        this.content |= (content & 0x00FF);
+        this.content |= (byte0 & 0x00FF);
     }
     
     public void setByte1(int byte1) {
         this.content &= 0x00FF;
-        this.content |= (content & 0xFF00);
+        this.content |= (byte1 & 0xFF00);
     }
     
     public int getByte0() {

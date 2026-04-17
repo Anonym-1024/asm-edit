@@ -5,6 +5,7 @@
 package asmedit.machine;
 
 import java.util.function.BiConsumer;
+import javax.sound.midi.Instrument;
 
 /**
  *
@@ -13,6 +14,10 @@ import java.util.function.BiConsumer;
 public class ControlUnit {
     
     protected Machine m;
+
+    public ControlUnit(Machine m) {
+        this.m = m;
+    }
     
     
     
@@ -22,12 +27,148 @@ public class ControlUnit {
     
     
     
+    public void cycle() {
+        
+        if (m.psr.getIRQM() == 1 && m.intr.isIRQ()) {
+            m.intr.setINT();
+        } 
+        
+        Instruction i = fetch();
+        
+        if (i == null) {
+            return;
+        }
+        
+        if (isCondValid(i.getCond())) {
+            execute(i);
+        }
+        
+        
+        
+    }
     
     
+    protected Instruction fetch() {
+        int base_addr;
+        
+        if (m.intr.isInterrupt()) {
+            base_addr = m.intpc.getContent();
+        } else {
+            
+            base_addr = m.pc.getContent();
+        }
+        
+        int addr = base_addr;
+        
+        if (m.psr.getState() != 0 && !m.intr.isInterrupt()) {
+            addr = translateAddress(addr);
+            if (m.intr.isInterrupt() == true) {
+                return null;
+            }
+        }
+     
+        byte byte0 = m.memory.getByte(addr);
+        
+        addr = base_addr + 1;
+        if (m.psr.getState() != 0 && !m.intr.isInterrupt()) {
+            addr = translateAddress(addr);
+            if (m.intr.isInterrupt() == true) {
+                return null;
+            }
+        }
+        byte byte1 = m.memory.getByte(addr);
+        
+        addr = base_addr + 2;
+        if (m.psr.getState() != 0 && !m.intr.isInterrupt()) {
+            addr = translateAddress(addr);
+            if (m.intr.isInterrupt() == true) {
+                return null;
+            }
+        }
+        byte byte2 = m.memory.getByte(addr);
+        
+        addr = base_addr + 3;
+        if (m.psr.getState() != 0 && !m.intr.isInterrupt()) {
+            addr = translateAddress(addr);
+            if (m.intr.isInterrupt() == true) {
+                return null;
+            }
+        }
+        byte byte3 = m.memory.getByte(addr);
+        
+        
+        if (m.intr.isInterrupt()) {
+            m.intpc.setContent(base_addr + 4);
+        } else {
+            m.pc.setContent(base_addr + 4);
+        }
+        
+        
+        
+        
+        return new Instruction(byte0, byte1, byte2, byte3);
+    }
     
-    
-    
-    
+    protected void execute(Instruction i) {
+        System.out.println(i.getOpcode());
+        switch (i.getOpcode()) {
+        case 0:  mov(i);    break;
+        case 1:  mova(i);   break;
+        case 2:  movs(i);   break;
+        case 3:  mvn(i);    break;
+        case 4:  mvns(i);   break;
+        case 5:  srw(i);    break;
+        case 6:  srr(i);    break;
+        case 7:  ldr(i);    break;
+        case 8:  str(i);    break;
+        case 9:  add(i);    break;
+        case 10: adds(i);   break;
+        case 11: addc(i);   break;
+        case 12: addcs(i);  break;
+        case 13: sub(i);    break;
+        case 14: subs(i);   break;
+        case 15: subc(i);   break;
+        case 16: subcs(i);  break;
+        case 17: and(i);    break;
+        case 18: ands(i);   break;
+        case 19: or(i);     break;
+        case 20: ors(i);    break;
+        case 21: eor(i);    break;
+        case 22: eors(i);   break;
+        case 23: lsl(i);    break;
+        case 24: lsls(i);   break;
+        case 25: lsr(i);    break;
+        case 26: lsrs(i);   break;
+        case 27: asr(i);    break;
+        case 28: asrs(i);   break;
+        case 29: csl(i);    break;
+        case 30: csls(i);   break;
+        case 31: csr(i);    break;
+        case 32: csrs(i);   break;
+        case 33: cmn(i);    break;
+        case 34: addcd(i);  break;
+        case 35: cmp(i);    break;
+        case 36: subcd(i);  break;
+        case 37: andd(i);   break;
+        case 38: ord(i);    break;
+        case 39: eord(i);   break;
+        case 40: lsld(i);   break;
+        case 41: lsrd(i);   break;
+        case 42: asrd(i);   break;
+        case 43: csld(i);   break;
+        case 44: csrd(i);   break;
+        case 45: br(i);     break;
+        case 46: brl(i);    break;
+        case 47: ptr(i);    break;
+        case 48: ptw(i);    break;
+        case 49: ptsr(i);   break;
+        case 50: svc(i);    break;
+        case 51: exit(i);   break;
+        default:
+            m.intr.setINI();
+            
+        }
+    }
     
     
     
@@ -96,6 +237,30 @@ public class ControlUnit {
     
     
 
+    protected int translateAddress(int addr) {
+        System.out.println("Addr: " + addr);
+        System.out.println("PTBR: " + m.ptbr.getContent() );
+        int pageTableEntryAddr = m.ptbr.getContent() << 9;
+        pageTableEntryAddr |= (addr & 0xFF00) >> 7;
+        
+        int pageTableEntry = 0;
+        pageTableEntry |= (m.memory.getByte(pageTableEntryAddr) & 0xFF);
+        pageTableEntry |= (m.memory.getByte(pageTableEntryAddr + 1) & 0xFF) << 8;
+        
+        // Not allocated
+        if ((pageTableEntry & 0x1000) != 0x1000) {
+            m.intr.setPF();
+            return -1;
+        }
+        
+        /// TODO: if read only
+        
+        
+        int physicalAddress = ((pageTableEntry << 8) | (addr & 0xFF)) & 0xFFFFF;
+        
+        return physicalAddress;
+    }
+     
     
     
     
@@ -172,6 +337,12 @@ public class ControlUnit {
     }
 
     public void srw(Instruction i) {
+        
+        if (m.psr.getState() > 1) {
+            // INTERRUPT INI????
+            return;
+        }
+        
         int src;
         if (i.isI()) {
             src = i.getByte3();
@@ -191,12 +362,15 @@ public class ControlUnit {
                 break;
             case 3:
                 m.intr.clear();
+                m.intpc.reset();
                 break;
             case 4:
                 m.ptbr.setByte0(src);
+                System.out.println("PTBR SET: " + src);
                 break;
             case 5:
                 m.ptbr.setByte1(src);
+                System.out.println("PTBR SET: " + src);
                 break;
         }
     }
@@ -251,9 +425,15 @@ public class ControlUnit {
         }
         
         Register dst = m.registers[i.getArg1()];
-        m.memory.setAddress(addr);
-        int read = m.memory.readByteV();
         
+        if (m.psr.getState() != 0 && !m.intr.isInterrupt()) {
+            addr = translateAddress(addr);
+            if (m.intr.isInterrupt() == true) {
+                return;
+            }
+        }
+        
+        int read = m.memory.getByte(addr);
         dst.setContent(read);
     }
 
@@ -270,9 +450,17 @@ public class ControlUnit {
             addr |= m.registers[(i.getArg2() + 1) % 16].getContent() << 8;
         }
         
+        
+        if (m.psr.getState() != 0 && !m.intr.isInterrupt()) {
+            addr = translateAddress(addr);
+            if (m.intr.isInterrupt()) {
+                return;
+            }
+        }
+        
+        
         int src = m.registers[i.getArg1()].getContent();
-        m.memory.setAddress(addr);
-        m.memory.writeByteV((byte)src);
+        m.memory.setByte(addr, (byte)src);
     }
 
     // --- Arithmetic ---
@@ -877,7 +1065,12 @@ public class ControlUnit {
             addr |= m.registers[(i.getArg1() + 1) % 16].getContent() << 8;
         }
         
-        m.pc.setContent(addr);
+        if (m.intr.isInterrupt()) {
+            m.intpc.setContent(addr);
+        } else {
+            m.pc.setContent(addr);
+        }
+        
         
     }
 
@@ -896,18 +1089,35 @@ public class ControlUnit {
             addr |= m.registers[(i.getArg2() + 1) % 16].getContent() << 8;
         }
         
-        link.setContent(m.pc.getContent());
-        m.pc.setContent(addr);
+        if (m.intr.isInterrupt()) {
+            link.setContent(m.intpc.getContent());
+            m.intpc.setContent(addr);
+        } else {
+            link.setContent(m.pc.getContent());
+            m.pc.setContent(addr);
+        }
     }
 
     // --- Port / System I/O ---
     public void ptr(Instruction i) {
+        if (m.psr.getState() > 1) {
+            // INTERRUPT INI????
+            return;
+        }
     }
 
     public void ptw(Instruction i) {
+        if (m.psr.getState() > 1) {
+            // INTERRUPT INI????
+            return;
+        }
     }
 
     public void ptsr(Instruction i) {
+        if (m.psr.getState() > 1) {
+            // INTERRUPT INI????
+            return;
+        }
     }
 
     // --- System / Exit ---
@@ -916,6 +1126,10 @@ public class ControlUnit {
     }
 
     public void exit(Instruction i) {
+        if (m.psr.getState() > 1) {
+            // INTERRUPT INI????
+            return;
+        }
         m.stop();
         
     }

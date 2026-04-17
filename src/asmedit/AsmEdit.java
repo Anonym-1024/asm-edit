@@ -5,11 +5,14 @@
 package asmedit;
 
 import asmedit.machine.Machine;
+import asmedit.machine.MachineConfig;
 import asmedit.machine.Register;
+import asmedit.utils.TranslationTableGenerator;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Scanner;
+import javax.print.attribute.standard.PrinterState;
 
 /**
  *
@@ -21,7 +24,12 @@ public class AsmEdit {
      * @param args the command line arguments
      */
     public static void main(String[] args) {
-        File file = new File("/Users/koukola/Documents/asm/resources/res");
+        
+        
+        
+        
+        
+        File file = new File("/Users/koukola/Documents/asm/resources/example");
         byte[] fileContent = new byte[(int) file.length()];
 
         try (FileInputStream fis = new FileInputStream(file)) {
@@ -42,21 +50,21 @@ public class AsmEdit {
             // e.printStackTrace();
         }
         
-        System.out.println(fileContent.length);
         Machine m = new Machine();
-        m.reset();
-        m.getMemory().initializeVirtualMemory(fileContent);
-        m.getMemory().loadInterruptHandler(fileContent2);
         
-        for (int i = 0; i < 1030; i++) {
-            System.out.println(m.getMemory().getByte(i));
-        }
+        m.getConfig().setDefaultMemory(fileContent2);
         
         Scanner s = new Scanner(System.in);
         
-        m.activate();
-        while (true) {
-            m.next();
+        m.startAndBoot();
+        m.getMemory().setBytes(512, TranslationTableGenerator.generate(fileContent, 512));
+        
+        for (int i = 0; i < 10000; i++) {
+            System.out.println(i + ": " + m.getMemory().getByte(i));
+        }
+        
+        while (m.getState() != Machine.State.STOPPED) {
+            m.nextCycle();
             int n = 0;
             for (Register r: m.getRegisters()) {
                 System.out.println("r" + n + ": " + r.getContent());

@@ -40,6 +40,8 @@ public class MachineConfig {
         this.defaultMemory = new byte[0];
     }
     
+    
+    
     protected int bootAddress;
     protected int interruptAddress;
     protected byte[] defaultMemory;
